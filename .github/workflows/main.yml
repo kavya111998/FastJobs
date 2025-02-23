@@ -21,14 +21,14 @@ jobs:
         run: |
           rm -f package-lock.json
           npm install
-      # Install OpenVPN
+      # Install OpenVPN t
       - name: Install OpenVPN
         run: sudo apt-get install -y openvpn
       # Save VPN Config File
       - name: Setup AWS VPN
         run: |
-          echo “${{ secrets.AWS_VPN_CONFIG }}” > aws-vpn.ovpn
-          echo -e “${{ secrets.AWS_VPN_USERNAME }}\n${{ secrets.AWS_VPN_PASSWORD }}” > vpn-auth.txt
+          echo “${{ secrets.VPN.AWS_VPN_CONFIG }}” > aws-vpn.ovpn
+          echo -e “${{ secrets.VPN.AWS_VPN_USERNAME }}\n${{ secrets.VPN.AWS_VPN_PASSWORD }}” > vpn-auth.txt
           chmod 600 vpn-auth.txt  # Secure the credentials file
       # Connect to VPN using auth file
       - name: Connect to AWS VPN
