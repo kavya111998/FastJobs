@@ -2,7 +2,7 @@ name: Cypress Tests
 on:
   push:
     branches:
-      - ‘**’
+      - "**"
   pull_request:
     branches:
       - main
@@ -27,8 +27,8 @@ jobs:
       # Save VPN Config File
       - name: Setup AWS VPN
         run: |
-          echo “${{ secrets.VPN.AWS_VPN_CONFIG }}” > aws-vpn.ovpn
-          echo -e “${{ secrets.VPN.AWS_VPN_USERNAME }}\n${{ secrets.VPN.AWS_VPN_PASSWORD }}” > vpn-auth.txt
+          echo "${{ secrets.VPN.AWS_VPN_CONFIG }}" > aws-vpn.ovpn
+          echo -e "${{ secrets.VPN.AWS_VPN_USERNAME }}\n${{ secrets.VPN.AWS_VPN_PASSWORD }}" > vpn-auth.txt
           chmod 600 vpn-auth.txt  # Secure the credentials file
       # Connect to VPN using auth file
       - name: Connect to AWS VPN
@@ -41,7 +41,7 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
-          spec: “cypress/e2e/${{ matrix.test_suite }}/**/*”
+          spec: "cypress/e2e/${{ matrix.test_suite }}/**/*"
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
