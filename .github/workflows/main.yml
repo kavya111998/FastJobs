@@ -27,23 +27,35 @@ jobs:
       # Save VPN Config File
       - name: Setup AWS VPN
         run: |
-          echo "${{ secrets.AWS_VPN_CONFIG }}" > aws-vpn.ovpn
-          echo -e "${{ secrets.AWS_VPN_USERNAME }}\n${{ secrets.AWS_VPN_PASSWORD }}" > vpn-auth.txt
-          chmod 600 vpn-auth.txt  # Secure the credentials file
-      # Connect to VPN using auth file
-      - name: Connect to AWS VPN
+          echo "${{ secrets.VPN_AWS_VPN_CONFIG }}" > aws-vpn.ovpn
+          echo -e "${{ secrets.VPN_AWS_VPN_USERNAME }}\n${{ secrets.VPN_AWS_VPN_PASSWORD }}" > vpn-auth.txt
+          chmod 600 vpn-auth.txt
+
+      - name: Debug AWS VPN Config
+        run: cat aws-vpn.ovpn
+
+      - name: Debug VPN Auth File
         run: |
-          sudo openvpn --config aws-vpn.ovpn --auth-user-pass vpn-auth.txt --daemon
-          sleep 10  # Allow time for VPN to connect
-      - name: Verify VPN Connection
-        run: curl ifconfig.me  # Confirm VPN is active
-      - name: Cypress run
-        uses: cypress-io/github-action@v6
-        with:
-          browser: chrome
-          spec: "cypress/e2e/${{ matrix.test_suite }}/**/*"
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: ${{ matrix.test_suite }}_screenshots
-          path: cypress/screenshots
+          echo "VPN Auth File:"
+          head -n 1 vpn-auth.txt
+
+      - name: Connect to AWS VPN (Debug Mode)
+        run: |
+          sudo openvpn --config aws-vpn.ovpn --auth-user-pass vpn-auth.txt
+            # Connect to VPN using auth file
+            - name: Connect to AWS VPN
+              run: |
+                sudo openvpn --config aws-vpn.ovpn --auth-user-pass vpn-auth.txt --daemon
+                sleep 10  # Allow time for VPN to connect
+            - name: Verify VPN Connection
+              run: curl ifconfig.me  # Confirm VPN is active
+            - name: Cypress run
+              uses: cypress-io/github-action@v6
+              with:
+                browser: chrome
+                spec: "cypress/e2e/${{ matrix.test_suite }}/**/*"
+            - uses: actions/upload-artifact@v4
+              if: failure()
+              with:
+                name: ${{ matrix.test_suite }}_screenshots
+                path: cypress/screenshots
