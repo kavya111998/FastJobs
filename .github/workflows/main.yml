@@ -42,20 +42,20 @@ jobs:
       - name: Connect to AWS VPN (Debug Mode)
         run: |
           sudo openvpn --config aws-vpn.ovpn --auth-user-pass vpn-auth.txt
-            # Connect to VPN using auth file
-            - name: Connect to AWS VPN
-              run: |
+      # Connect to VPN using auth file
+      - name: Connect to AWS VPN
+        run: |
                 sudo openvpn --config aws-vpn.ovpn --auth-user-pass vpn-auth.txt --daemon
                 sleep 10  # Allow time for VPN to connect
-            - name: Verify VPN Connection
-              run: curl ifconfig.me  # Confirm VPN is active
-            - name: Cypress run
-              uses: cypress-io/github-action@v6
-              with:
+      - name: Verify VPN Connection
+        run: curl ifconfig.me  # Confirm VPN is active
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
                 browser: chrome
                 spec: "cypress/e2e/${{ matrix.test_suite }}/**/*"
-            - uses: actions/upload-artifact@v4
-              if: failure()
-              with:
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
                 name: ${{ matrix.test_suite }}_screenshots
                 path: cypress/screenshots
