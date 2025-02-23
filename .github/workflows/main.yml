@@ -17,17 +17,30 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
+
       - name: Install dependencies
         run: |
           rm -f package-lock.json
           npm install
-      # Install OpenVPN t
+
       - name: Install OpenVPN
         run: sudo apt-get install -y openvpn
-      # Save VPN Config File
+
       - name: Setup AWS VPN
         run: |
-          echo "${{ secrets.VPN.AWS_VPN_CONFIG }}" > aws-vpn.ovpn
+          echo "client" > aws-vpn.ovpn
+          echo "dev tun" >> aws-vpn.ovpn
+          echo "proto tcp" >> aws-vpn.ovpn
+          echo "remote cvpn-endpoint-0f3ded9133a0bb702.prod.clientvpn.ap-southeast-1.amazonaws.com 443" >> aws-vpn.ovpn
+          echo "resolv-retry infinite" >> aws-vpn.ovpn
+          echo "nobind" >> aws-vpn.ovpn
+          echo "remote-cert-tls server" >> aws-vpn.ovpn
+          echo "cipher AES-256-GCM" >> aws-vpn.ovpn
+          echo "verb 3" >> aws-vpn.ovpn
+          echo "<ca>" >> aws-vpn.ovpn
+          echo "${{ secrets.VPN.AWS_VPN_CONFIG }}" >> aws-vpn.ovpn
+          echo "</ca>" >> aws-vpn.ovpn
+          echo "auth-user-pass" >> aws-vpn.ovpn
           echo -e "${{ secrets.VPN.AWS_VPN_USERNAME }}\n${{ secrets.VPN.AWS_VPN_PASSWORD }}" > vpn-auth.txt
           chmod 600 vpn-auth.txt
 
@@ -37,25 +50,25 @@ jobs:
       - name: Debug VPN Auth File
         run: |
           echo "VPN Auth File:"
-          head -n 1 vpn-auth.txt
+          head -n 1 vpn-auth.txt  # Print only the first line (username)
 
       - name: Connect to AWS VPN (Debug Mode)
         run: |
           sudo openvpn --config aws-vpn.ovpn --auth-user-pass vpn-auth.txt
-      # Connect to VPN using auth file
-      - name: Connect to AWS VPN
-        run: |
-                sudo openvpn --config aws-vpn.ovpn --auth-user-pass vpn-auth.txt --daemon
-                sleep 10  # Allow time for VPN to connect
+
       - name: Verify VPN Connection
-        run: curl ifconfig.me  # Confirm VPN is active
+        run: |
+          ifconfig tun0  # Check if the VPN tunnel is up
+          curl ifconfig.me  # Confirm VPN is active
+
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
-                browser: chrome
-                spec: "cypress/e2e/${{ matrix.test_suite }}/**/*"
+          browser: chrome
+          spec: "cypress/e2e/${{ matrix.test_suite }}/**/*"
+
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-                name: ${{ matrix.test_suite }}_screenshots
-                path: cypress/screenshots
+          name: ${{ matrix.test_suite }}_screenshots
+          path: cypress/screenshots
